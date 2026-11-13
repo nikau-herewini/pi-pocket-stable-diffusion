@@ -32,7 +32,7 @@ export function createService(directory, Lock, getConfig, options = {}) {
   const requestMs = options.requestMs ?? LIMITS.requestMs;
   const cancelMs = options.cancelMs ?? LIMITS.cancelMs;
   async function json(config, path, method, signal, expected = 200, body) {
-    const bounded = AbortSignal.any([signal, AbortSignal.timeout(requestMs)]);
+    const bounded = AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(requestMs)]);
     try {
       const response = await http(config.endpoint + path, { method, redirect: 'error', signal: bounded,
         headers: { Accept: 'application/json', 'Content-Type': 'application/json', ...(config.token ? { Authorization: `Bearer ${config.token}` } : {}) },
@@ -139,7 +139,7 @@ export function createService(directory, Lock, getConfig, options = {}) {
         }, context);
         if (active.connection !== config.connection) fail('The locked request belongs to another connection. Restore its settings or use owner recovery.');
         if (active.deadline <= Date.now()) fail('Generation deadline expired.');
-        const signal = AbortSignal.any([context.abortSignal, AbortSignal.timeout(Math.max(1, active.deadline - Date.now()))]);
+        const signal = AbortSignal.any([...(context.abortSignal ? [context.abortSignal] : []), AbortSignal.timeout(Math.max(1, active.deadline - Date.now()))]);
         let references = await api.memo(MEMO.references, context) ?? [];
         if (!active.jobId) {
           if (started) fail('Submission outcome is unknown. Owner recovery is required; do not retry.');

@@ -8,12 +8,12 @@ export function dimensions(bytes) {
   let width, height, mimeType;
   if (bytes.length >= 33 && bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')) && bytes.toString('ascii', 12, 16) === 'IHDR') {
     width = bytes.readUInt32BE(16); height = bytes.readUInt32BE(20); mimeType = 'image/png';
-  } else if (bytes.length >= 30 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') {
+  } else if (bytes.length >= 12 && bytes.toString('ascii', 0, 4) === 'RIFF' && bytes.toString('ascii', 8, 12) === 'WEBP') {
     mimeType = 'image/webp';
     const kind = bytes.toString('ascii', 12, 16);
-    if (kind === 'VP8X' && !(bytes[20] & 2)) { width = bytes.readUIntLE(24, 3) + 1; height = bytes.readUIntLE(27, 3) + 1; }
-    if (kind === 'VP8L' && bytes[20] === 0x2f) { const bits = bytes.readUInt32LE(21); width = (bits & 0x3fff) + 1; height = ((bits >>> 14) & 0x3fff) + 1; }
-    if (kind === 'VP8 ' && bytes.subarray(23, 26).equals(Buffer.from([0x9d, 1, 0x2a]))) { width = bytes.readUInt16LE(26) & 0x3fff; height = bytes.readUInt16LE(28) & 0x3fff; }
+    if (kind === 'VP8X' && bytes.length >= 30 && !(bytes[20] & 2)) { width = bytes.readUIntLE(24, 3) + 1; height = bytes.readUIntLE(27, 3) + 1; }
+    if (kind === 'VP8L' && bytes.length >= 25 && bytes[20] === 0x2f) { const bits = bytes.readUInt32LE(21); width = (bits & 0x3fff) + 1; height = ((bits >>> 14) & 0x3fff) + 1; }
+    if (kind === 'VP8 ' && bytes.length >= 30 && bytes.subarray(23, 26).equals(Buffer.from([0x9d, 1, 0x2a]))) { width = bytes.readUInt16LE(26) & 0x3fff; height = bytes.readUInt16LE(28) & 0x3fff; }
   } else if (bytes.length > 4 && bytes[0] === 0xff && bytes[1] === 0xd8) {
     mimeType = 'image/jpeg';
     let offset = 2;
@@ -73,7 +73,7 @@ export function referenceLoader(dataDir, outputDir, resizeImage) {
       const edge = exif && longest > 1 ? Math.min(REFERENCE_LIMITS.edge, longest - 1) : REFERENCE_LIMITS.edge;
       let normalized;
       try {
-        const resized = await resizeImage(bytes, info.mimeType, { maxWidth: edge, maxHeight: edge, maxBytes: REFERENCE_LIMITS.encoded });
+        const resized = await resizeImage(bytes, info.mimeType, { maxWidth: edge, maxHeight: edge, maxBytes: REFERENCE_LIMITS.encoded }, signal);
         if (!resized || typeof resized.data !== 'string' || resized.data.length > REFERENCE_LIMITS.encoded || !/^[A-Za-z0-9+/]+={0,2}$/.test(resized.data)) throw new Error();
         normalized = Buffer.from(resized.data, 'base64');
         const out = dimensions(normalized);

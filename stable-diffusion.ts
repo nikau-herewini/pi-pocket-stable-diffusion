@@ -8,7 +8,7 @@
 import { join } from 'node:path';
 import { defineDoc, defineExtension, defineTool } from '@earendil-works/pi-durable';
 import { arr, int, obj, opt, str } from '@earendil-works/pi-schema';
-import { resizeImage } from '@earendil-works/pi-coding-agent';
+import { createDecoder } from './stable-diffusion/decode.mjs';
 import { configuration, DEFAULT_PRESETS } from './stable-diffusion/config.mjs';
 import { referenceLoader } from './stable-diffusion/references.mjs';
 import { createService } from './stable-diffusion/service.mjs';
@@ -31,7 +31,7 @@ export default function stableDiffusion(host, web) {
   ]);
   const config = () => configuration(Object.fromEntries(['endpoint', 'token', 'timeoutMinutes', 'presets'].map(name => [name, web.setting(name)])));
   const directory = join(host.dataDir, 'extensions', 'stable-diffusion', 'outputs');
-  const service = createService(directory, ImageLock, config, { prepareReferences: referenceLoader(host.dataDir, directory, resizeImage) });
+  const service = createService(directory, ImageLock, config, { prepareReferences: referenceLoader(host.dataDir, directory, createDecoder()) });
   const presets = Object.assign(defineTool({
     name: 'sd_presets', description: 'List owner-configured Stable Diffusion presets and their supported inputs. Does not probe or change the backend.',
     parameters: obj({}), replay: 'safe',

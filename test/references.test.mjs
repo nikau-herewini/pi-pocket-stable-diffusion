@@ -5,13 +5,14 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { resizeImage } from '@earendil-works/pi-coding-agent';
 import { referenceLoader, dimensions } from '../stable-diffusion/references.mjs';
+import { createDecoder } from '../stable-diffusion/decode.mjs';
 import { png } from './support.mjs';
 
 async function setup(t) {
   const root = await mkdtemp(join(tmpdir(), 'sd-reference-')); t.after(() => rm(root, { recursive: true, force: true }));
   const uploads = join(root, 'uploads', '1'), outputs = join(root, 'extensions', 'stable-diffusion', 'outputs');
   await mkdir(uploads, { recursive: true }); await mkdir(outputs, { recursive: true });
-  return { root, uploads, outputs, signal: new AbortController().signal, load: referenceLoader(root, outputs, resizeImage) };
+  return { root, uploads, outputs, signal: new AbortController().signal, load: referenceLoader(root, outputs, createDecoder()) };
 }
 test('real image processor normalizes ordered uploads and generated outputs', async t => {
   const f = await setup(t); const a = join(f.uploads, 'wide.png'), b = join(f.outputs, 'tall.png');

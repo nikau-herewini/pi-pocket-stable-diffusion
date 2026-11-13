@@ -41,6 +41,8 @@ extensions/
 ├── stable-diffusion.ts
 └── stable-diffusion/
     ├── config.mjs
+    ├── decode.mjs
+    ├── decode-worker.mjs
     ├── references.mjs
     └── service.mjs
 ```
@@ -111,7 +113,7 @@ The image appears in the conversation and is saved under `extensions/stable-diff
 
 References must be absolute local paths to **this conversation's uploads** or **this extension's saved outputs**. URLs, arbitrary server files, and other conversations' uploads are rejected. Generated outputs are shared across conversations using this extension; do not use this folder as a per-conversation privacy boundary.
 
-Limits: 3 images, 8 MB per file, 16 MB combined, 16 million pixels per image. PNG, JPEG, and static WebP are accepted. References are decoded and normalized to fit within 1024×1024, with aspect ratio preserved. EXIF orientation is normalized. Ordered original and normalized hashes are stored, not reference base64 data or original paths.
+Limits: 3 images, 8 MB per file, 16 MB combined, 16 million pixels per image. PNG, JPEG, and static WebP are accepted. References are decoded and normalized to fit within 1024×1024, with aspect ratio preserved. EXIF orientation is normalized. Each decode runs in a separate worker with a 30-second deadline. Cancellation terminates the worker before the call releases its lock. Ordered original and normalized hashes are stored, not reference base64 data or original paths.
 
 Describe each reference's role in the prompt in the same order. Reference conditioning is not supported by every model. This is not generic img2img or inpainting support.
 
@@ -154,6 +156,6 @@ npm ci
 npm test
 ```
 
-Node 22.18+ is required. CI runs Node 22 and 24. Dependencies are development-only; the lockfile pins test packages. Tests use fake HTTP services and temporary data, plus the actual public Pi image processor and extension packages. They do not use deployment credentials, live Pi Pocket data, model weights, or GPUs.
+Node 22.18+ is required. CI runs Node 22 and 24. Dependencies are development-only; the lockfile pins test packages. Tests use fake HTTP services and temporary data, plus the actual public Pi image processor and extension packages. They cover forced process crashes, blocked decoder termination, and real Pi Durable storage across conversations and reopening. They do not use deployment credentials, live Pi Pocket data, model weights, or GPUs.
 
 Before production use, run a fixed-seed live generation against your exact server build, confirm output persistence, test cancellation/restart behavior, and measure memory use. Automated tests do not establish model quality, hardware compatibility, or throughput.

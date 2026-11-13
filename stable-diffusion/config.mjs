@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto';
 
-export const hash = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(value)).digest('hex');
+const canonical = value => Array.isArray(value) ? value.map(canonical) : value && typeof value === 'object'
+  ? Object.fromEntries(Object.keys(value).sort().map(key => [key, canonical(value[key])])) : value;
+export const hash = value => createHash('sha256').update(typeof value === 'string' || Buffer.isBuffer(value) ? value : JSON.stringify(canonical(value))).digest('hex');
 export const DEFAULT_PRESETS = JSON.stringify({
   standard: { label: 'Standard diffusion', width: 512, height: 512, steps: 20, sampler: 'euler', scheduler: 'discrete', cfg: 7, negativePrompt: true, references: false },
   klein: { label: 'Distilled Klein', width: 512, height: 512, steps: 4, sampler: 'euler', scheduler: 'flux2', cfg: 1, negativePrompt: false, references: true },

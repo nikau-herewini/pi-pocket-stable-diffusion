@@ -11,7 +11,7 @@ This is a trusted Pi Pocket drop-in, not a sandbox. Review all runtime files bef
 - Backend output PNGs receive structural and dimension checks and SHA256 integrity checks on replay. These are not a complete PNG decoder or malware scanner. Use a trusted backend.
 - Reference files are canonicalized and constrained to current-conversation uploads and this extension's shared outputs. The final file is opened without following symlinks. Hostile concurrent changes to parent directories by another local process are outside this boundary; keep the data volume trusted.
 - Secret bearer tokens are never included in tool schemas, results, raw error text, or durable receipts. Owner-defined preset labels and generation parameters are not secret.
-- Reference images are decoded through Pi Pocket's public image processor. Keep Pi Pocket and its codecs patched.
+- Reference images are decoded through Pi Pocket's public image processor in terminable workers, with a 30-second deadline and cancellation. Each worker has a 256 MB V8 heap limit; native and WebAssembly allocations are not covered by that heap limit. The input byte and pixel limits still apply. Workers isolate execution time, not filesystem permissions. Keep Pi Pocket and its codecs patched.
 - A durable lock prevents concurrent extension calls. It does not protect against direct backend clients, file replacements, or other installations.
 - Backend model fingerprints identify reported selections and transitions, not weight bytes. A human must manage model replacement and unknown-job recovery.
 

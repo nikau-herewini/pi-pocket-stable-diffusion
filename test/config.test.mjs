@@ -1,8 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { configuration, planRequest } from '../stable-diffusion/config.mjs';
+import { configuration, planRequest, hash } from '../stable-diffusion/config.mjs';
 import { values } from './support.mjs';
 
+test('model fingerprints ignore JSON object key order but preserve array order', () => {
+  assert.equal(hash({ models: { b: 'two', a: 'one' }, revision: 1 }), hash({ revision: 1, models: { a: 'one', b: 'two' } }));
+  assert.notEqual(hash(['one', 'two']), hash(['two', 'one']));
+});
 test('connection accepts path prefixes but rejects URL credentials, query, fragments, and unsafe tokens', () => {
   assert.equal(configuration({ ...values(), endpoint: 'https://example.org/diffusion/' }).endpoint, 'https://example.org/diffusion');
   for (const endpoint of ['', 'file:///tmp/service', 'https://user:pass@example.org', 'https://example.org?token=x', 'https://example.org/#x']) assert.throws(() => configuration({ ...values(), endpoint }), /Invalid/);
