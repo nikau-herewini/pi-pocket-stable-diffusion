@@ -1,0 +1,11 @@
+{
+  "name": "pi-pocket-stable-diffusion",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pi Pocket tools for self-hosted stable-diffusion.cpp",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
