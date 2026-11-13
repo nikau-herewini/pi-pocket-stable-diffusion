@@ -4,6 +4,8 @@
  * Reads only current-conversation uploads and this extension's saved images as references.
  * Writes PNG outputs below the data folder and durable job receipts in Pi Pocket.
  * Results can reach the conversation's model provider. Adds no public routes or telemetry.
+ *
+ * @title Stable Diffusion
  */
 import { join } from 'node:path';
 import { defineDoc, defineExtension, defineTool } from '@earendil-works/pi-durable';
@@ -28,7 +30,8 @@ export default function stableDiffusion(host, web) {
     { name: 'token', label: 'Bearer token', type: 'text', secret: true, default: '', description: 'Optional token for the server or its reverse proxy. Use HTTPS outside a trusted local network.' },
     { name: 'timeoutMinutes', label: 'Generation timeout (minutes)', type: 'number', default: 20, min: 1, max: 120 },
     { name: 'presets', label: 'Generation presets (JSON)', type: 'text', default: DEFAULT_PRESETS, description: 'Named presets for the model already loaded by the server. This extension does not load models.' },
-  ]);
+  ], { sheet: 'settings' });
+  web.client('stable-diffusion.js', { access: 'owner' });
   const config = () => configuration(Object.fromEntries(['endpoint', 'token', 'timeoutMinutes', 'presets'].map(name => [name, web.setting(name)])));
   const directory = join(host.dataDir, 'extensions', 'stable-diffusion', 'outputs');
   const service = createService(directory, ImageLock, config, { prepareReferences: referenceLoader(host.dataDir, directory, createDecoder()) });
