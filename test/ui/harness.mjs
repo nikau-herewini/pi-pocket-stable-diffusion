@@ -39,7 +39,7 @@ import {h,render} from '/preact.js';import{useState,useEffect,useRef}from'/hooks
 const root=document.querySelector('#sheet'), listeners=new Set();let spec;
 const read=async()=>{const response=await fetch('/settings');if(!response.ok)throw Error('Load failed');return response.json()};
 const pocket={html:htm.bind(h),useState,useEffect,useRef,settings:read,onSettings:fn=>{listeners.add(fn);return()=>listeners.delete(fn)},
-saveSettings:async patch=>{const response=await fetch('/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});if(!response.ok)throw Error((await response.json()).error)},
+saveSettings:async patch=>{const response=await fetch('/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});if(!response.ok)throw Error((await response.json()).error);for(const fn of listeners)fn()},
 sheet:given=>{spec=given},menu(){},launcher(){}};
 ${legacy ? 'delete pocket.saveSettings;' : ''}
 setup(pocket);window.emitSettings=()=>{for(const fn of listeners)fn()};

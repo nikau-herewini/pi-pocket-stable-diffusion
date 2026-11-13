@@ -29,6 +29,14 @@ for (const width of [390, 1280]) test(`structured settings work at ${width}px wi
   assert.equal(JSON.parse(state.values.presets).standard.steps, 24);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 });
+test('an existing single-preset configuration does not regain removed examples', { timeout: 30000 }, async t => {
+  const presets = JSON.stringify({ klein: JSON.parse(DEFAULT_PRESETS).klein });
+  const { page, state } = await browserFixture(t, { presets }); await loaded(page);
+  assert.equal(await page.$$eval('fieldset', nodes => nodes.length), 1);
+  assert.equal(await page.$eval('[name=presetName-preset-0]', element => element.value), 'klein');
+  await clickText(page, 'Save settings'); await saved(page);
+  assert.deepEqual(JSON.parse(state.values.presets), JSON.parse(presets));
+});
 test('token replacement and clearing are explicit; the saved token is not returned or displayed', { timeout: 30000 }, async t => {
   const { page, state } = await browserFixture(t); await loaded(page);
   await page.select('[name=tokenAction]', 'replace'); await fill(page, 'token', 'replacement-test-token');
@@ -75,6 +83,19 @@ test('an external settings change requires an explicit reload before saving', { 
   assert.equal(await page.$eval('[name=endpoint]', element => element.value), 'https://unsaved.example.org');
   await clickText(page, 'Reload saved settings'); await loaded(page);
   assert.equal(await page.$eval('[name=timeoutMinutes]', element => element.value), '90');
+});
+test('token-only changes in another tab cannot be missed because sanitized values match', { timeout: 30000 }, async t => {
+  const { page, state } = await browserFixture(t); await loaded(page);
+  await page.select('[name=tokenAction]', 'replace'); await fill(page, 'token', 'pending-test-token');
+  state.secret = 'rotated-test-token'; await page.evaluate(() => window.emitSettings());
+  await page.waitForFunction(() => document.body.textContent.includes('Settings changed elsewhere.'));
+  assert.equal(await page.$eval('[type=submit]', element => element.disabled), true);
+  assert.equal(state.patches.length, 0); assert.equal(state.secret, 'rotated-test-token');
+  await clickText(page, 'Reload saved settings'); await loaded(page);
+  assert.equal(await page.$('[name=token]'), null);
+  await clickText(page, 'Save settings'); await saved(page);
+  assert.ok(!Object.hasOwn(state.patches.at(-1), 'token')); assert.equal(state.secret, 'rotated-test-token');
+  assert.equal(await page.$eval('[type=submit]', element => element.disabled), false);
 });
 test('preset examples can be added and removed without replacing existing presets', { timeout: 30000 }, async t => {
   const { page, state } = await browserFixture(t); await loaded(page);

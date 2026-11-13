@@ -70,15 +70,13 @@ export default function setup(pocket) {
     const [draft, setDraft] = useState(null), [templates, setTemplates] = useState([]);
     const [error, setError] = useState(''), [notice, setNotice] = useState(''), [loading, setLoading] = useState(true), [saving, setSaving] = useState(false);
     const [template, setTemplate] = useState(''), [stale, setStale] = useState(false);
-    const mounted = useRef(true), baseline = useRef(''), savingNow = useRef(false), nextKey = useRef(100);
+    const mounted = useRef(true), savingNow = useRef(false), nextKey = useRef(100);
     const canSave = typeof pocket.saveSettings === 'function';
-    const fingerprint = settings => JSON.stringify([settings.values, settings.set]);
     async function load() {
       setLoading(true); setError('');
       try {
         const settings = await pocket.settings();
         if (!mounted.current) return;
-        baseline.current = fingerprint(settings);
         setDraft(draftFromSettings(settings));
         const examples = presetRows(settings.fields.find(field => field.name === 'presets')?.default ?? '{}');
         setTemplates(examples); setTemplate(examples[0]?.name ?? ''); setStale(false);
@@ -89,10 +87,9 @@ export default function setup(pocket) {
       mounted.current = true;
       void load();
       const stop = typeof pocket.onSettings === 'function' ? pocket.onSettings(() => {
-        if (savingNow.current) return;
-        pocket.settings().then(settings => {
-          if (mounted.current && !savingNow.current && baseline.current !== fingerprint(settings)) setStale(true);
-        }, () => {});
+        // A token-only change is invisible in sanitized values. Treat every
+        // event outside our own save as a change, even when visible values match.
+        if (mounted.current && !savingNow.current) setStale(true);
       }) : () => {};
       return () => { mounted.current = false; stop(); };
     }, []);
@@ -124,7 +121,7 @@ export default function setup(pocket) {
         // Read only the sanitized settings. Never retain a submitted token in the form.
         const settings = await pocket.settings();
         if (mounted.current) {
-          baseline.current = fingerprint(settings); setDraft(draftFromSettings(settings)); setStale(false);
+          setDraft(draftFromSettings(settings)); setStale(false);
           setNotice('Settings saved. No restart is needed.');
         }
       } catch { if (mounted.current) setError('Settings could not be saved. Reload to check the current values before retrying.'); }
