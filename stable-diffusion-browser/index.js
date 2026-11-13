@@ -65,6 +65,8 @@ export default function setup(pocket) {
   const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 15rem), 1fr))', gap: '16px' };
   const labelStyle = { display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 };
   const actions = { display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' };
+  const checkStyle = { display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', minHeight: '44px', cursor: 'pointer' };
+  const checkInput = { width: '18px', height: '18px', flex: '0 0 auto', margin: 0, accentColor: 'var(--accent)' };
   const buttonStyle = { minHeight: '44px', padding: '8px 14px' };
 
   function Settings({ close }) {
@@ -162,16 +164,16 @@ export default function setup(pocket) {
             ${field('Sampler', `sampler-${row.key}`, row.sampler, sampler => updateRow(row.key, { sampler }), { maxLength: 40, required: true, autoCapitalize: 'none', spellCheck: false })}
             ${field('Scheduler', `scheduler-${row.key}`, row.scheduler, scheduler => updateRow(row.key, { scheduler }), { maxLength: 40, required: true, autoCapitalize: 'none', spellCheck: false })}
           </div>
-          <div style=${{ ...actions, gap: '16px', margin: '12px 0' }}>
-            <label style=${{ ...actions, minHeight: '44px' }}><input type="checkbox" name=${`negativePrompt-${row.key}`} checked=${row.negativePrompt} disabled=${saving} onChange=${event => updateRow(row.key, { negativePrompt: event.currentTarget.checked })} /> Allow negative prompts</label>
-            <label style=${{ ...actions, minHeight: '44px' }}><input type="checkbox" name=${`references-${row.key}`} checked=${row.references} disabled=${saving} onChange=${event => updateRow(row.key, { references: event.currentTarget.checked })} /> Allow reference images</label>
+          <div style=${{ ...grid, gap: '8px', margin: '12px 0' }}>
+            <label style=${checkStyle}><input type="checkbox" style=${checkInput} name=${`negativePrompt-${row.key}`} checked=${row.negativePrompt} disabled=${saving} onChange=${event => updateRow(row.key, { negativePrompt: event.currentTarget.checked })} /> <span>Allow negative prompts</span></label>
+            <label style=${checkStyle}><input type="checkbox" style=${checkInput} name=${`references-${row.key}`} checked=${row.references} disabled=${saving} onChange=${event => updateRow(row.key, { references: event.currentTarget.checked })} /> <span>Allow reference images</span></label>
           </div>
           <div style=${actions}>
             ${index > 0 && html`<button class="button" style=${buttonStyle} type="button" disabled=${saving} onClick=${() => update({ rows: [row, ...draft.rows.filter(other => other.key !== row.key)] })}>Make default</button>`}
             <button class="button" style=${buttonStyle} type="button" disabled=${saving || draft.rows.length === 1} onClick=${() => update({ rows: draft.rows.filter(other => other.key !== row.key) })}>Remove preset</button>
           </div>
         </fieldset>`)}
-        ${!draft.repair && html`<div style=${actions}><label style=${labelStyle}><span>Add from example</span><select name="template" value=${template} style=${{ ...inputStyle, width: 'auto', maxWidth: '100%' }} disabled=${saving || draft.rows.length >= 16} onChange=${event => setTemplate(event.currentTarget.value)}>${templates.map(row => html`<option value=${row.name}>${row.label}</option>`)}</select></label><button class="button" style=${buttonStyle} type="button" disabled=${saving || draft.rows.length >= 16 || !templates.length} onClick=${addPreset}>Add preset</button></div>`}
+        ${!draft.repair && html`<div style=${{ ...actions, alignItems: 'flex-end' }}><label style=${{ ...labelStyle, flex: '1 1 15rem' }}><span>Add from example</span><select name="template" value=${template} style=${{ ...inputStyle, minWidth: '12rem', maxWidth: '100%' }} disabled=${saving || draft.rows.length >= 16} onChange=${event => setTemplate(event.currentTarget.value)}>${templates.map(row => html`<option value=${row.name}>${row.label}</option>`)}</select></label><button class="button" style=${buttonStyle} type="button" disabled=${saving || draft.rows.length >= 16 || !templates.length} onClick=${addPreset}>Add preset</button></div>`}
       </section>
       <div style=${{ position: 'sticky', bottom: 0, padding: '12px 0', background: 'var(--card)', borderTop: '1px solid var(--line)', display: 'grid', gap: '8px' }}>
         ${error && html`<p class="error-box" role="alert" style=${{ margin: 0 }}>${error}</p>`}

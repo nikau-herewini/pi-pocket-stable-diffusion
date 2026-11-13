@@ -11,6 +11,19 @@ for (const width of [390, 1280]) test(`structured settings work at ${width}px wi
   assert.equal(await page.$$eval('fieldset', nodes => nodes.length), 2);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.ok(await page.$$eval('button,input:not([type=checkbox]),select', nodes => nodes.every(node => node.getBoundingClientRect().height >= 44)));
+  const checkbox = await page.$eval('[name=references-preset-0]', input => {
+    const box = input.getBoundingClientRect(), text = input.parentElement.querySelector('span').getBoundingClientRect();
+    return { aligned: Math.abs((box.top + box.height / 2) - (text.top + text.height / 2)) <= 4, before: box.right <= text.left + 1 };
+  });
+  assert.deepEqual(checkbox, { aligned: true, before: true });
+  if (width === 1280) {
+    const add = await page.$eval('[name=template]', select => {
+      const button = [...document.querySelectorAll('button')].find(element => element.textContent.trim() === 'Add preset');
+      const field = select.getBoundingClientRect(), control = button.getBoundingClientRect();
+      return { aligned: Math.abs(field.bottom - control.bottom) <= 2, after: field.right <= control.left };
+    });
+    assert.deepEqual(add, { aligned: true, after: true });
+  }
   assert.ok(!(await page.content()).includes('stored-test-token'));
   if (width === 390 && process.env.UI_SCREENSHOT_DIR) {
     await mkdir(process.env.UI_SCREENSHOT_DIR, { recursive: true });
