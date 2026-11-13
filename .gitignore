@@ -4,3 +4,5 @@ coverage/
 .env.*
 *.local.json
 _generated-images/
+/core
+/core.*

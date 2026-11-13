@@ -114,7 +114,7 @@ export default function setup(pocket) {
     }
     async function save(event) {
       event.preventDefault();
-      if (!canSave || saving || stale) return;
+      if (!canSave || savingNow.current || saving || stale) return;
       setError(''); setNotice('');
       let patch;
       try { patch = settingsPatch(draft); } catch (failure) { setError(failure.message); return; }
@@ -153,7 +153,7 @@ export default function setup(pocket) {
       <section aria-labelledby="sd-presets"><h3 id="sd-presets">Generation presets</h3>
         <p class="small muted">The first preset is the default. Enable negative prompts and references only when your loaded model supports them.</p>
         ${draft.repair ? html`<div class="error-box"><p>${draft.repair}</p><label style=${labelStyle}>Repair saved preset JSON<textarea name="repairPresets" value=${draft.rawPresets} onInput=${event => update({ rawPresets: event.currentTarget.value })} rows="12" style=${{ ...inputStyle, minHeight: '240px', fontFamily: 'monospace' }} /></label><button class="button" style=${buttonStyle} type="button" onClick=${repair}>Use repaired JSON</button></div>` : draft.rows.map((row, index) => html`<fieldset key=${row.key} style=${{ border: '1px solid var(--line)', borderRadius: '10px', padding: '16px', minWidth: 0, margin: '0 0 16px' }}>
-          <legend>${row.label || row.name || 'Preset'}${index === 0 ? ' · Default' : ''}</legend>
+          <legend style=${{ maxWidth: '100%', overflowWrap: 'anywhere', padding: '0 4px' }}>${row.label || row.name || 'Preset'}${index === 0 ? ' · Default' : ''}</legend>
           <div style=${grid}>
             ${field('Preset name', `presetName-${row.key}`, row.name, name => updateRow(row.key, { name }), { maxLength: 40, required: true, autoCapitalize: 'none', spellCheck: false })}
             ${field('Label', `label-${row.key}`, row.label, label => updateRow(row.key, { label }), { maxLength: 100, required: true })}

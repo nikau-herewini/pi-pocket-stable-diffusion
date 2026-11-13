@@ -19,4 +19,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      - name: Test the settings sheet in Chrome
+        run: npm run test:ui
+        env:
+          BROWSER_BIN: /usr/bin/google-chrome
       - run: git diff --exit-code

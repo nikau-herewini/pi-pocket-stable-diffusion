@@ -3,7 +3,7 @@
  * Sends prompts and optional local references to that service, with an optional secret bearer token.
  * Reads only current-conversation uploads and this extension's saved images as references.
  * Writes PNG outputs below the data folder and durable job receipts in Pi Pocket.
- * Results can reach the conversation's model provider. Adds no public routes or telemetry.
+ * Results can reach the conversation's model provider. Adds an owner-only browser settings sheet; no public routes or telemetry.
  *
  * @title Stable Diffusion
  */
