@@ -4,8 +4,15 @@
   "private": true,
   "type": "module",
   "description": "Pi Pocket tools for self-hosted stable-diffusion.cpp",
-  "engines": { "node": ">=22.18" },
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "@earendil-works/pi-coding-agent": "1.5.0",
+    "@earendil-works/pi-durable": "1.5.0",
+    "@earendil-works/pi-schema": "1.5.0"
   }
 }
