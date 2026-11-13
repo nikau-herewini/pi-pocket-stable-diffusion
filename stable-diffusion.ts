@@ -31,7 +31,7 @@ export default function stableDiffusion(host, web) {
     { name: 'timeoutMinutes', label: 'Generation timeout (minutes)', type: 'number', default: 20, min: 1, max: 120 },
     { name: 'presets', label: 'Generation presets (JSON)', type: 'text', default: DEFAULT_PRESETS, description: 'Named presets for the model already loaded by the server. This extension does not load models.' },
   ], { sheet: 'settings' });
-  web.client('stable-diffusion.js', { access: 'owner' });
+  web.client('stable-diffusion-browser', { access: 'owner' });
   const config = () => configuration(Object.fromEntries(['endpoint', 'token', 'timeoutMinutes', 'presets'].map(name => [name, web.setting(name)])));
   const directory = join(host.dataDir, 'extensions', 'stable-diffusion', 'outputs');
   const service = createService(directory, ImageLock, config, { prepareReferences: referenceLoader(host.dataDir, directory, createDecoder()) });

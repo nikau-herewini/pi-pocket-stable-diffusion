@@ -35,14 +35,18 @@ Other revisions are not guaranteed compatible. This does **not** support ComfyUI
 
 ## Install
 
-Review `stable-diffusion.ts` and all files in `stable-diffusion/` before activation. A drop-in runs with the Pi Pocket server's rights.
+Review `stable-diffusion.ts`, `stable-diffusion-browser/`, and all files in
+`stable-diffusion/` before activation. A drop-in runs with the Pi Pocket
+server's rights.
 
 Copy these files from a reviewed commit into the Pi Pocket **data folder**:
 
 ```text
 extensions/
 ├── stable-diffusion.ts
-├── stable-diffusion.js
+├── stable-diffusion-browser/
+│   ├── index.js
+│   └── style.css
 └── stable-diffusion/
     ├── config.mjs
     ├── decode.mjs
@@ -58,6 +62,15 @@ For Docker, persist these files in the mounted data directory or mount the sourc
 In **Menu → Extensions**, enable **Stable Diffusion**, then choose **Open settings**. You can also open **Stable Diffusion settings** from the app menu or launcher. The wide sheet becomes a full-width form on phones.
 
 Set:
+
+### Basic settings fallback
+
+Pi Pocket shows a collapsed **Basic settings** fallback under a module that has
+a custom settings sheet. This extension hides that fallback in its own row with
+a scoped stylesheet, loaded only while its browser module is ready. The fallback
+reappears in safe mode, after a client failure, or if a future Pi Pocket changes
+that markup. It remains a recovery path; the custom sheet is the normal way to
+edit settings.
 
 1. **Service URL:** a trusted URL reachable **from the Pi Pocket container**, for example `http://sd-server:8080`. `localhost` means that container itself. A reverse-proxy path prefix such as `https://images.example.org/sd` is supported.
 2. **Bearer token:** optional, stored as a secret setting. It is sent only in the `Authorization` header. If your server has no bearer authentication, an authenticated reverse proxy can provide it.

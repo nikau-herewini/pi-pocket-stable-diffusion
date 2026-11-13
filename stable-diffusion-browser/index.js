@@ -60,6 +60,7 @@ export function settingsPatch(draft) {
 
 export default function setup(pocket) {
   const { html, useState, useEffect, useRef } = pocket;
+  pocket.style('style.css');
   const inputStyle = { width: '100%', boxSizing: 'border-box', minHeight: '44px', fontSize: '16px', padding: '8px 10px', color: 'var(--text)', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: '8px' };
   const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 15rem), 1fr))', gap: '16px' };
   const labelStyle = { display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 };
