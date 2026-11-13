@@ -6,6 +6,8 @@ Generate images in [Pi Pocket](https://github.com/nikau-herewini/pi-pocket) usin
 
 ## Features
 
+- A **Stable Diffusion** display title and a dedicated, wide owner settings sheet.
+- Structured connection, authentication, and preset fields; no JSON editing for normal setup.
 - Owner-configured service URL, optional secret bearer token, and named generation presets.
 - One PNG per call; configurable dimensions, steps, sampler, scheduler, and CFG through presets.
 - Optional negative prompts and up to 3 ordered reference images, enabled per preset.
@@ -16,6 +18,7 @@ Generate images in [Pi Pocket](https://github.com/nikau-herewini/pi-pocket) usin
 ## Requirements
 
 - Pi Pocket **0.28.0 or newer**, extension API 2. Tests use its Pi package versions, 1.5.0.
+- The dedicated sheet and display title require a Pi Pocket build with `@title`, `web.settings(fields, { sheet })`, and `pocket.saveSettings` support. Older builds retain the filename title and inline settings; the sheet explains when saving is unavailable.
 - A reachable `sd-server` with the **native asynchronous API** described below.
 - A model already loaded by the server, with a compatible preset and sufficient memory.
 
@@ -39,6 +42,7 @@ Copy these files from a reviewed commit into the Pi Pocket **data folder**:
 ```text
 extensions/
 ├── stable-diffusion.ts
+├── stable-diffusion.js
 └── stable-diffusion/
     ├── config.mjs
     ├── decode.mjs
@@ -51,12 +55,20 @@ Do not copy tests, `node_modules`, or your repository checkout into the drop-in 
 
 For Docker, persist these files in the mounted data directory or mount the source files read-only individually. Leave `extensions/stable-diffusion/outputs/` writable. Do not make changes only inside a running image.
 
-In **Menu → Extensions**, enable **stable-diffusion** and set:
+In **Menu → Extensions**, enable **Stable Diffusion**, then choose **Open settings**. You can also open **Stable Diffusion settings** from the app menu or launcher. The wide sheet becomes a full-width form on phones.
+
+Set:
 
 1. **Service URL:** a trusted URL reachable **from the Pi Pocket container**, for example `http://sd-server:8080`. `localhost` means that container itself. A reverse-proxy path prefix such as `https://images.example.org/sd` is supported.
 2. **Bearer token:** optional, stored as a secret setting. It is sent only in the `Authorization` header. If your server has no bearer authentication, an authenticated reverse proxy can provide it.
 3. **Generation timeout:** 1–120 minutes, default 20. Each HTTP request is also limited to 15 seconds.
-4. **Generation presets:** JSON described below.
+4. **Generation presets:** edit the named preset cards described below. Remove incompatible examples, adjust each field, and choose **Make default** for the preset to use first.
+
+Choose **Save settings** to apply changes. No restart is needed. **Reload saved settings** discards unsaved edits and reads current values. If another tab changes the settings, reload before saving your draft.
+
+A stored token is never displayed or copied into the form. **Keep stored token** leaves it unchanged; replacement and removal require an explicit choice. New token inputs are cleared after a successful save. Finish active image jobs before changing the connection or token.
+
+The internal module ID stays `stable-diffusion`; existing settings, receipts, images, and tool names do not change. On older Pi Pocket builds, use the inline settings under `stable-diffusion` until you update the app.
 
 The service URL starts empty, so generation fails closed until configured. Do not put credentials in the URL. Use HTTPS outside a trusted private network. The extension refuses redirects, URL user/password fields, query strings, and fragments. Do not expose an unauthenticated model server to the internet.
 
@@ -65,6 +77,8 @@ After changing helper files, restart Pi Pocket through its normal controls when 
 ## Presets
 
 The defaults include a conventional diffusion example and a distilled Klein example. **They are examples, not automatic model selection.** Remove incompatible presets or edit them to match the model already loaded by your server.
+
+The sheet provides fields for name, label, dimensions, steps, CFG, sampler, scheduler, and input capability switches. **Add preset** copies an example without replacing current presets. The JSON representation below remains useful for older builds and configuration examples. If previously saved JSON is invalid, the sheet preserves it in a repair textarea instead of discarding it.
 
 ```json
 {
@@ -154,8 +168,9 @@ The optional bearer token stays in Pi Pocket's secret settings. The extension se
 ```sh
 npm ci
 npm test
+npm run test:ui
 ```
 
-Node 22.18+ is required. CI runs Node 22 and 24. Dependencies are development-only; the lockfile pins test packages. Tests use fake HTTP services and temporary data, plus the actual public Pi image processor and extension packages. They cover forced process crashes, blocked decoder termination, and real Pi Durable storage across conversations and reopening. They do not use deployment credentials, live Pi Pocket data, model weights, or GPUs.
+Node 22.18+ is required. CI runs Node 22 and 24. UI tests need Chrome or Chromium; set `BROWSER_BIN` if it is not in a standard location. They run at phone and desktop widths with isolated browser profiles and synthetic settings, not live Pi Pocket data. Dependencies are development-only; the lockfile pins test packages. Tests use fake HTTP services and temporary data, plus the actual public Pi image processor and extension packages. They cover forced process crashes, blocked decoder termination, and real Pi Durable storage across conversations and reopening. They do not use deployment credentials, live Pi Pocket data, model weights, or GPUs.
 
 Before production use, run a fixed-seed live generation against your exact server build, confirm output persistence, test cancellation/restart behavior, and measure memory use. Automated tests do not establish model quality, hardware compatibility, or throughput.

@@ -30,7 +30,7 @@ test('real Pi Durable stores one lock across conversations and reopening; owner 
   try {
     globalThis.fetch = async (_url, init) => { assert.equal(init.method, 'GET'); return completed(); };
     create({ dataDir: '/tmp/example-data' }, {
-      settings() {}, setting: name => settings[name], command: (name, command) => commands.set(name, command),
+      settings() {}, client() {}, setting: name => settings[name], command: (name, command) => commands.set(name, command),
       error: (_code, message) => new Error(message),
     });
   } finally { globalThis.fetch = originalFetch; }
