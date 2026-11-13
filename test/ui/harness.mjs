@@ -5,18 +5,19 @@ import { join } from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { DEFAULT_PRESETS } from '../../stable-diffusion/config.mjs';
 
-export async function browserFixture(t, { width = 390, height = 844, failLoad = false, legacy = false, presets = DEFAULT_PRESETS } = {}) {
+export async function browserFixture(t, { width = 390, height = 844, failLoad = false, legacy = false, presets = DEFAULT_PRESETS, applyStyle = true } = {}) {
   const state = { values: { endpoint: 'https://images.example.org/sd', timeoutMinutes: 20, presets }, secret: 'stored-test-token', patches: [], failLoad, failSave: false };
   const files = new Map([
-    ['/extension.js', new URL('../../stable-diffusion.js', import.meta.url)],
+    ['/extension.js', new URL('../../stable-diffusion-browser/index.js', import.meta.url)],
     ['/preact.js', import.meta.resolve('preact')],
     ['/hooks.js', import.meta.resolve('preact/hooks')],
     ['/htm.js', import.meta.resolve('htm')],
+    ['/style.css', new URL('../../stable-diffusion-browser/style.css', import.meta.url)],
   ]);
   const server = createServer(async (request, response) => {
     try {
       const path = new URL(request.url, 'http://localhost').pathname;
-      if (files.has(path)) { response.setHeader('Content-Type', 'text/javascript'); response.end(await readFile(new URL(files.get(path)))); return; }
+      if (files.has(path)) { response.setHeader('Content-Type', path.endsWith('.css') ? 'text/css' : 'text/javascript'); response.end(await readFile(new URL(files.get(path)))); return; }
       if (path === '/settings' && request.method === 'GET') {
         response.setHeader('Content-Type', 'application/json');
         if (state.failLoad) { response.statusCode = 503; response.end('{}'); return; }
@@ -40,11 +41,11 @@ const root=document.querySelector('#sheet'), listeners=new Set();let spec;
 const read=async()=>{const response=await fetch('/settings');if(!response.ok)throw Error('Load failed');return response.json()};
 const pocket={html:htm.bind(h),useState,useEffect,useRef,settings:read,onSettings:fn=>{listeners.add(fn);return()=>listeners.delete(fn)},
 saveSettings:async patch=>{const response=await fetch('/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)});if(!response.ok)throw Error((await response.json()).error);for(const fn of listeners)fn()},
-sheet:given=>{spec=given},menu(){},launcher(){}};
+style:()=>{${applyStyle ? "const link=document.createElement('link');link.rel='stylesheet';link.href='/style.css';document.head.append(link);" : ''}},sheet:given=>{spec=given},menu(){},launcher(){}};
 ${legacy ? 'delete pocket.saveSettings;' : ''}
 setup(pocket);window.emitSettings=()=>{for(const fn of listeners)fn()};
 render(h('div',{},h('h1',{},spec.title),h(spec.component,{close:()=>render(null,root)})),root);
-</script></body></html>`);
+</script><div id="core-rows" style="padding:16px"><div class="ext-row-more" id="ext-more-stable-diffusion-ts"><div><details open><summary>Basic settings</summary><div class="ext-settings">stable basic</div></details></div><details><summary>Other details</summary><div>keep</div></details></div><div class="ext-row-more" id="ext-more-other-ts"><div><details open><summary>Basic settings</summary><div class="ext-settings">other basic</div></details></div></div></div></body></html>`);
     } catch { response.statusCode = 500; response.end('Test server error'); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));

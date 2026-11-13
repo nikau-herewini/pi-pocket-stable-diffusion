@@ -1,0 +1,13 @@
+/*
+ * Pi Pocket shows a "Basic settings" fallback under a module that has a custom
+ * settings sheet. This extension's sheet is complete, so hide that fallback in
+ * this module's row while this browser module is loaded.
+ *
+ * The rule is scoped by the module row's id and to a <details> that directly
+ * contains the app's basic settings form. Pi Pocket loads this stylesheet only
+ * while the browser module is ready, so the fallback remains available in safe
+ * mode, after a client failure, and on a core UI that does not match.
+ */
+#ext-more-stable-diffusion-ts details:has(> .ext-settings) {
+    display: none;
+}

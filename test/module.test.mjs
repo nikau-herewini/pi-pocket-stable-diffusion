@@ -14,7 +14,7 @@ test('module loads against Pi packages and registers settings, tools, and owner-
   assert.equal(declared.find(s => s.name === 'token').secret, true);
   assert.equal(declared.find(s => s.name === 'endpoint').default, '');
   assert.deepEqual(options, { sheet: 'settings' });
-  assert.deepEqual(client, { entry: 'stable-diffusion.js', access: 'owner' });
+  assert.deepEqual(client, { entry: 'stable-diffusion-browser', access: 'owner' });
   assert.equal(extension.tools.length, 2);
   assert.deepEqual(Object.keys(JSON.parse((await extension.tools.find(t => t.name === 'sd_presets').execute()).output[0].text)), ['standard', 'klein']);
   const tool = extension.tools.find(t => t.name === 'sd_generate'); assert.equal(tool.replay, 'safe');

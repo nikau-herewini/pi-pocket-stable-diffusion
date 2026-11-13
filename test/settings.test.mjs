@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import setup, { draftFromSettings, presetRows, settingsPatch } from '../stable-diffusion.js';
+import setup, { draftFromSettings, presetRows, settingsPatch } from '../stable-diffusion-browser/index.js';
 import { DEFAULT_PRESETS, configuration } from '../stable-diffusion/config.mjs';
 import { ImageLock } from '../stable-diffusion.ts';
 
@@ -46,9 +46,10 @@ test('structured editing enforces connection, numeric, name, and preset capabili
   assert.deepEqual(Object.keys(JSON.parse(patch.presets)), ['klein', 'standard']);
   assert.equal(JSON.parse(patch.presets).standard.cfg, 7.5);
 });
-test('client adds one owner settings sheet plus menu/launcher entries, without changing identifiers', async () => {
+test('client adds one owner settings sheet, its stylesheet, and menu/launcher entries, without changing identifiers', async () => {
   const registered = {};
-  setup({ sheet: spec => { registered.sheet = spec; }, menu: spec => { registered.menu = spec; }, launcher: spec => { registered.launcher = spec; } });
+  setup({ style: path => { registered.style = path; }, sheet: spec => { registered.sheet = spec; }, menu: spec => { registered.menu = spec; }, launcher: spec => { registered.launcher = spec; } });
+  assert.equal(registered.style, 'style.css');
   assert.equal(registered.sheet.title, 'Stable Diffusion'); assert.equal(registered.sheet.wide, true);
   assert.equal(registered.sheet.id, 'settings'); assert.equal(registered.menu.sheet, 'settings'); assert.equal(registered.launcher.sheet, 'settings');
   assert.equal(ImageLock.definition.kind, 'x.stable-diffusion.lock'); assert.equal(ImageLock.definition.version, 1);
